@@ -1,0 +1,434 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gerador de Roteiros para Reels - John Delmiro</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <style>
+        :root {
+            --primary-color: #3498db; 
+            --secondary-color: #2ecc71; 
+            --reels-color: #e74c3c; /* Coral para Reels */
+            --background-color: #f4f7f9;
+            --card-background: #ffffff;
+            --text-color: #333333;
+            --light-text-color: #555555;
+            --border-color: #e0e0e0;
+            --shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            --border-radius: 8px;
+            --font-family: 'Segoe UI', 'Roboto', 'Helvetica Neue', Arial, sans-serif;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: var(--font-family);
+            background-color: var(--background-color);
+            color: var(--text-color);
+            line-height: 1.6;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+            transition: background-color 0.3s ease;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        header {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px 0;
+            margin-bottom: 30px;
+            background-color: var(--card-background);
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow);
+            width: 100%;
+            max-width: 900px;
+        }
+
+        header img {
+            max-height: 60px;
+            margin-right: 20px;
+            border-radius: 50%;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+
+        header h1 {
+            font-size: 1.8em;
+            color: var(--reels-color); 
+            font-weight: 600;
+            text-align: center;
+        }
+
+        .section-card {
+            background-color: var(--card-background);
+            padding: 25px;
+            margin-bottom: 30px;
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow);
+            transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+        }
+
+        .section-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+        }
+        
+        .section-card h2, .section-card h3 {
+            color: var(--reels-color);
+            margin-bottom: 15px;
+            border-bottom: 2px solid var(--primary-color); 
+            padding-bottom: 8px;
+            font-weight: 600;
+        }
+        
+        .section-card h2 {
+            font-size: 1.6em;
+            display: flex;
+            align-items: center;
+        }
+         .section-card h2 .icon {
+            margin-right: 10px;
+            font-size: 1.2em;
+        }
+
+        .section-card h3 {
+            font-size: 1.3em;
+            margin-top: 20px;
+        }
+
+        label {
+            display: block;
+            font-weight: 500;
+            margin-bottom: 8px;
+            color: var(--text-color);
+        }
+
+        input[type="text"],
+        textarea {
+            width: 100%;
+            padding: 12px;
+            margin-bottom: 20px;
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            font-size: 1rem;
+            font-family: var(--font-family);
+            transition: border-color 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        input[type="text"]:focus,
+        textarea:focus {
+            outline: none;
+            border-color: var(--reels-color);
+            box-shadow: 0 0 0 3px rgba(231, 76, 60, 0.2);
+        }
+
+        textarea {
+            min-height: 120px;
+            resize: vertical;
+        }
+
+        .dicas {
+            background-color: #fff0ed; 
+            border-left: 4px solid var(--reels-color);
+            padding: 15px;
+            margin-bottom: 15px;
+            border-radius: 0 var(--border-radius) var(--border-radius) 0;
+            font-size: 0.95em;
+            color: var(--light-text-color);
+        }
+
+        .dicas ul {
+            list-style-position: inside;
+            padding-left: 0;
+        }
+        .dicas ul li {
+            margin-bottom: 8px;
+        }
+        .dicas strong {
+            color: var(--reels-color);
+        }
+
+        .btn {
+            background-color: var(--reels-color);
+            color: white;
+            padding: 12px 25px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 1.1rem;
+            font-weight: 500;
+            transition: background-color 0.3s ease, transform 0.2s ease;
+            display: inline-block;
+            text-align: center;
+            margin-top: 20px;
+        }
+
+        .btn:hover {
+            background-color: #c0392b; 
+            transform: translateY(-2px);
+        }
+        
+        pre {
+            background-color: #2d2d2d; 
+            color: #f0f0f0;
+            padding: 20px;
+            border-radius: var(--border-radius);
+            overflow-x: auto;
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 0.9em;
+            white-space: pre-wrap; 
+            word-wrap: break-word;
+            margin-top: 15px;
+        }
+
+        .example-list ul {
+            list-style: none;
+            padding-left: 0;
+        }
+
+        .example-list li {
+            margin-bottom: 12px;
+            display: flex;
+            align-items: flex-start;
+            padding: 8px;
+            border-radius: 4px;
+            transition: background-color 0.2s ease;
+        }
+         .example-list li:hover {
+            background-color: #fff0ed;
+         }
+
+        .example-list-title {
+            font-weight: bold;
+            color: var(--reels-color);
+            margin-top: 20px;
+            margin-bottom: 10px;
+            font-size: 1.2em;
+        }
+        .example-list li .icon {
+            margin-right: 10px;
+            font-size: 1.1em;
+            color: var(--reels-color);
+        }
+
+        @media (max-width: 768px) {
+            header h1 {
+                font-size: 1.5em;
+            }
+            .section-card h2 {
+                font-size: 1.4em;
+            }
+            .section-card h3 {
+                font-size: 1.2em;
+            }
+        }
+
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <img src="https://i.postimg.cc/bNwhtTws/logodelmirodigital-2.png" alt="Logo John Delmiro">
+            <h1>Gerador de Roteiros para Reels</h1>
+        </header>
+
+        <section class="section-card" id="gerador-roteiro-reels">
+            <h2><span class="icon">📹</span>Crie seu Roteiro de Reel</h2>
+            <form id="reelScriptForm">
+                <div>
+                    <label for="reelTitulo">Título do Reel (Opcional):</label>
+                    <input type="text" id="reelTitulo" name="reelTitulo" placeholder="Ex: Reflexão Matinal Sobre Momentos">
+                </div>
+                <hr style="margin: 30px 0; border: 0; border-top: 1px solid var(--border-color);">
+                
+                <!-- TEMPO DO GANCHO ATUALIZADO AQUI -->
+                <h3><span class="icon">1️⃣</span> Gancho / Começo (2-5 segundos)</h3>
+                <div class="dicas">
+                    <strong>Dicas para o Gancho:</strong>
+                    <ul>
+                        <li>Inicie com algo que desperte curiosidade.</li>
+                        <li>Faça uma pergunta inesperada.</li>
+                        <li>Compartilhe um pensamento que provoque um sorriso ou reflexão rápida.</li>
+                    </ul>
+                </div>
+                <textarea id="reelGancho" name="reelGancho" placeholder="“Você já parou pra pensar por que a gente sempre espera pelo momento certo?”"></textarea>
+
+                <!-- TEMPO DO DESENVOLVIMENTO ATUALIZADO AQUI -->
+                <h3><span class="icon">2️⃣</span> Desenvolvimento / Meio (20-40 segundos)</h3>
+                <div class="dicas">
+                    <strong>Dicas para o Desenvolvimento:</strong>
+                    <ul>
+                        <li>Traga a reflexão ou ideia central.</li>
+                        <li>Fale de forma próxima, sem imposição.</li>
+                        <li>Mantenha a naturalidade e tom de voz que são sua marca.</li>
+                    </ul>
+                </div>
+                <textarea id="reelDesenvolvimento" name="reelDesenvolvimento" placeholder="“Às vezes, o momento certo é agora – quando a gente decide que está tudo bem ser feliz do jeito que a gente é, com o que tem.”"></textarea>
+
+                <!-- TEMPO DO CTA ATUALIZADO AQUI -->
+                <h3><span class="icon">3️⃣</span> CTA / Encerramento (3-8 segundos)</h3>
+                <div class="dicas">
+                    <strong>Dicas para o CTA:</strong>
+                    <ul>
+                        <li>Convide à reflexão, compartilhamento ou curtida de forma suave.</li>
+                        <li>Inclua uma recapitulação sutil.</li>
+                        <li>Faça um convite para o próximo vídeo, mantendo continuidade e leveza.</li>
+                    </ul>
+                </div>
+                <textarea id="reelCTA" name="reelCTA" placeholder="“Salva pra ver de novo se precisar. E me conta: o que faz teu coração sorrir hoje? 🌿✨”"></textarea>
+
+                <button type="button" class="btn" id="downloadReelPdfBtn">
+                    <span class="icon">📄</span> Baixar Roteiro do Reel em PDF
+                </button>
+            </form>
+
+            <h3 class="example-list-title"><span class="icon" style="color:var(--reels-color)">💡</span>Exemplo de Estrutura para Reels</h3>
+            <pre>
+🎬 Estrutura para vídeos curtos (Reels)
+
+{/* TEMPOS ATUALIZADOS NO EXEMPLO */}
+1️⃣ Gancho / Começo (2-5 segundos)
+– Exemplo: “Você já parou pra pensar por que a gente sempre espera pelo momento certo?”
+
+2️⃣ Desenvolvimento / Meio (20-40 segundos)
+– Exemplo: “Às vezes, o momento certo é agora – quando a gente decide que está tudo bem ser feliz do jeito que a gente é, com o que tem.”
+
+3️⃣ CTA / Encerramento (3-8 segundos)
+– Exemplo: “Salva pra ver de novo se precisar. E me conta: o que faz teu coração sorrir hoje? 🌿✨”
+            </pre>
+
+            <div class="example-list">
+                <h3 class="example-list-title"><span class="icon" style="color:var(--reels-color)">🌟</span>10 Exemplos de Ganchos Iniciais</h3>
+                <ul>
+                    <li><span class="icon">✨</span>“Sabe aquele momento que faz teu coração sorrir?”</li>
+                    <li><span class="icon">✨</span>“Eu vi algo hoje que me fez pensar…”</li>
+                    <li><span class="icon">✨</span>“Olha essa vista! Já imaginou o que ela pode te ensinar?”</li>
+                    <li><span class="icon">✨</span>“E se a vida fosse só sobre recomeçar?”</li>
+                    <li><span class="icon">✨</span>“Preciso te contar um segredo sobre sorrisos…”</li>
+                    <li><span class="icon">✨</span>“Hoje eu percebi que a gente complica o que é simples…”</li>
+                    <li><span class="icon">✨</span>“Uma frase que mudou meu dia…”</li>
+                    <li><span class="icon">✨</span>“Você já parou pra ouvir o silêncio?”</li>
+                    <li><span class="icon">✨</span>“Já se perguntou por que a gente esquece de olhar pra dentro?”</li>
+                    <li><span class="icon">✨</span>“Um pensamento pra iluminar teu dia…”</li>
+                </ul>
+            </div>
+
+            <div class="example-list">
+                <h3 class="example-list-title"><span class="icon" style="color:var(--reels-color)">💫</span>10 Exemplos de CTAs Finais</h3>
+                <ul>
+                    <li><span class="icon">➡️</span>“Conta aqui embaixo: o que faz teu coração sorrir hoje?”</li>
+                    <li><span class="icon">➡️</span>“Salva esse vídeo pra ver quando precisar de um lembrete suave. 💙”</li>
+                    <li><span class="icon">➡️</span>“Curtiu essa reflexão? Manda pra quem também precisa.”</li>
+                    <li><span class="icon">➡️</span>“Comenta aqui o que essa frase despertou em ti.”</li>
+                    <li><span class="icon">➡️</span>“E se isso tocar alguém que tu ama? Compartilha.”</li>
+                    <li><span class="icon">➡️</span>“Salva pra quando o dia pedir uma dose de leveza.”</li>
+                    <li><span class="icon">➡️</span>“Já sentiu isso também? Conta pra mim!”</li>
+                    <li><span class="icon">➡️</span>“Vamos espalhar mais sorrisos? Deixa um ❤️ aqui.”</li>
+                    <li><span class="icon">➡️</span>“Te inspirou? Marca quem vai se sentir bem lendo isso.”</li>
+                    <li><span class="icon">➡️</span>“Me conta: o que faz teus olhos brilharem hoje?”</li>
+                </ul>
+            </div>
+        </section>
+
+        <footer style="text-align: center; padding: 20px 0; color: var(--light-text-color); font-size: 0.9em;">
+            <p>&copy; <span id="currentYear"></span> John Delmiro. Todos os direitos reservados.</p>
+            <p>Uma ferramenta para impulsionar sua criação de Reels.</p>
+        </footer>
+    </div>
+
+    <script>
+        document.getElementById('currentYear').textContent = new Date().getFullYear();
+
+        const pageMargin = 15;
+        const defaultLineHeightMultiplier = 1.4;
+        const paragraphSpacing = 4; 
+
+        function checkAndAddPage(doc, currentYRef, neededHeight) {
+            const pageHeight = doc.internal.pageSize.getHeight();
+            if (currentYRef.y + neededHeight > pageHeight - pageMargin) {
+                doc.addPage();
+                currentYRef.y = pageMargin;
+                return true; 
+            }
+            return false; 
+        }
+
+        function addContentToPdf(doc, currentYRef, content, fontSize, fontStyle, textColor, isTitleLike = false, sectionSpacing = 5) {
+            const pageWidth = doc.internal.pageSize.getWidth() - 2 * pageMargin;
+            const lineHeight = fontSize * defaultLineHeightMultiplier / doc.internal.scaleFactor;
+            
+            if (isTitleLike) {
+                 checkAndAddPage(doc, currentYRef, lineHeight + sectionSpacing); 
+            }
+
+            doc.setFontSize(fontSize);
+            doc.setFont(undefined, fontStyle);
+            doc.setTextColor(textColor[0], textColor[1], textColor[2]);
+            
+            if (content) {
+                const paragraphs = content.split('\n'); 
+                paragraphs.forEach(paragraph => {
+                    const trimmedParagraph = paragraph.trim();
+                    if (trimmedParagraph === "" && !isTitleLike) { 
+                        checkAndAddPage(doc, currentYRef, lineHeight / 2); 
+                        currentYRef.y += lineHeight / 2; 
+                        return;
+                    }
+                    const textLines = doc.splitTextToSize(trimmedParagraph || content, pageWidth);
+                    textLines.forEach(line => {
+                        checkAndAddPage(doc, currentYRef, lineHeight);
+                        doc.text(line, pageMargin, currentYRef.y);
+                        currentYRef.y += lineHeight;
+                    });
+                    if (!isTitleLike) currentYRef.y += paragraphSpacing; 
+                });
+            } else {
+                checkAndAddPage(doc, currentYRef, lineHeight);
+                doc.text("[Conteúdo não preenchido]", pageMargin, currentYRef.y);
+                currentYRef.y += lineHeight + (isTitleLike ? 0 : paragraphSpacing);
+            }
+            if (isTitleLike) currentYRef.y += 3; 
+            else currentYRef.y += sectionSpacing; 
+        }
+
+        document.getElementById('downloadReelPdfBtn').addEventListener('click', function() {
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF({ orientation: 'p', unit: 'mm', format: 'a4' });
+            let currentYRef = { y: pageMargin };
+
+            const reelTitulo = document.getElementById('reelTitulo').value.trim();
+            const reelGancho = document.getElementById('reelGancho').value.trim();
+            const reelDesenvolvimento = document.getElementById('reelDesenvolvimento').value.trim();
+            const reelCTA = document.getElementById('reelCTA').value.trim();
+
+            const titleText = reelTitulo ? `Roteiro do Reel: ${reelTitulo}` : "Roteiro do Reel";
+            addContentToPdf(doc, currentYRef, titleText, 18, 'bold', [231,76,60], true, 10); // Cor Coral
+
+            addContentToPdf(doc, currentYRef, "1️⃣ Gancho / Começo", 14, 'bold', [44,62,80], true, 3);
+            addContentToPdf(doc, currentYRef, reelGancho, 11, 'normal', [51,51,51], false, 5);
+
+            addContentToPdf(doc, currentYRef, "2️⃣ Desenvolvimento / Meio", 14, 'bold', [44,62,80], true, 3);
+            addContentToPdf(doc, currentYRef, reelDesenvolvimento, 11, 'normal', [51,51,51], false, 5);
+            
+            addContentToPdf(doc, currentYRef, "3️⃣ CTA / Encerramento", 14, 'bold', [44,62,80], true, 3);
+            addContentToPdf(doc, currentYRef, reelCTA, 11, 'normal', [51,51,51], false, 5);
+
+            let filename = "roteiro_reel";
+            if(reelTitulo) filename = `roteiro_reel_${reelTitulo.toLowerCase().replace(/[^\w\s-]/g, '').trim().replace(/[\s-]+/g, '_')}`;
+            doc.save(`${filename.substring(0,60)}.pdf`);
+        });
+    </script>
+</body>
+</html>
