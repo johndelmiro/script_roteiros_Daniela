@@ -172,8 +172,17 @@
             transition: background-color 0.3s ease, transform 0.2s ease;
             display: inline-block;
             text-align: center;
-            margin-top: 20px;
+            margin-top: 10px; /* Reduzido para dar espaço ao botão de limpar */
+            margin-right: 10px; /* Espaço para o botão de limpar */
         }
+        .btn-clear {
+            background-color: #95a5a6; /* Cinza */
+            color: white;
+        }
+        .btn-clear:hover {
+            background-color: #7f8c8d; /* Cinza mais escuro */
+        }
+
 
         .btn:hover {
             background-color: #c0392b; 
@@ -233,6 +242,15 @@
             .section-card h3 {
                 font-size: 1.2em;
             }
+            .btn {
+                display: block;
+                width: 100%;
+                margin-right: 0;
+                margin-bottom: 10px;
+            }
+             .btn:last-of-type {
+                margin-bottom: 0;
+            }
         }
 
     </style>
@@ -253,7 +271,6 @@
                 </div>
                 <hr style="margin: 30px 0; border: 0; border-top: 1px solid var(--border-color);">
                 
-                <!-- TEMPO DO GANCHO ATUALIZADO AQUI -->
                 <h3><span class="icon">1️⃣</span> Gancho / Começo (2-5 segundos)</h3>
                 <div class="dicas">
                     <strong>Dicas para o Gancho:</strong>
@@ -265,7 +282,6 @@
                 </div>
                 <textarea id="reelGancho" name="reelGancho" placeholder="“Você já parou pra pensar por que a gente sempre espera pelo momento certo?”"></textarea>
 
-                <!-- TEMPO DO DESENVOLVIMENTO ATUALIZADO AQUI -->
                 <h3><span class="icon">2️⃣</span> Desenvolvimento / Meio (20-40 segundos)</h3>
                 <div class="dicas">
                     <strong>Dicas para o Desenvolvimento:</strong>
@@ -277,7 +293,6 @@
                 </div>
                 <textarea id="reelDesenvolvimento" name="reelDesenvolvimento" placeholder="“Às vezes, o momento certo é agora – quando a gente decide que está tudo bem ser feliz do jeito que a gente é, com o que tem.”"></textarea>
 
-                <!-- TEMPO DO CTA ATUALIZADO AQUI -->
                 <h3><span class="icon">3️⃣</span> CTA / Encerramento (3-8 segundos)</h3>
                 <div class="dicas">
                     <strong>Dicas para o CTA:</strong>
@@ -292,13 +307,15 @@
                 <button type="button" class="btn" id="downloadReelPdfBtn">
                     <span class="icon">📄</span> Baixar Roteiro do Reel em PDF
                 </button>
+                <button type="button" class="btn btn-clear" id="clearReelFormBtn">
+                    <span class="icon">🗑️</span> Limpar Formulário
+                </button>
             </form>
 
             <h3 class="example-list-title"><span class="icon" style="color:var(--reels-color)">💡</span>Exemplo de Estrutura para Reels</h3>
             <pre>
 🎬 Estrutura para vídeos curtos (Reels)
 
-{/* TEMPOS ATUALIZADOS NO EXEMPLO */}
 1️⃣ Gancho / Começo (2-5 segundos)
 – Exemplo: “Você já parou pra pensar por que a gente sempre espera pelo momento certo?”
 
@@ -343,7 +360,7 @@
         </section>
 
         <footer style="text-align: center; padding: 20px 0; color: var(--light-text-color); font-size: 0.9em;">
-            <p>&copy; <span id="currentYear"></span> John Delmiro. Todos os direitos reservados.</p>
+            <p>© <span id="currentYear"></span> John Delmiro. Todos os direitos reservados.</p>
             <p>Uma ferramenta para impulsionar sua criação de Reels.</p>
         </footer>
     </div>
@@ -403,6 +420,65 @@
             else currentYRef.y += sectionSpacing; 
         }
 
+        // --- LOCALSTORAGE IMPLEMENTATION ---
+        const reelForm = document.getElementById('reelScriptForm');
+        const reelFields = [
+            document.getElementById('reelTitulo'),
+            document.getElementById('reelGancho'),
+            document.getElementById('reelDesenvolvimento'),
+            document.getElementById('reelCTA')
+        ];
+
+        // Função para salvar os dados no localStorage
+        function saveReelData() {
+            reelFields.forEach(field => {
+                if (field) { // Verifica se o campo existe
+                    localStorage.setItem(`reel_${field.id}`, field.value);
+                }
+            });
+        }
+
+        // Função para carregar os dados do localStorage
+        function loadReelData() {
+            reelFields.forEach(field => {
+                if (field) { // Verifica se o campo existe
+                    const savedValue = localStorage.getItem(`reel_${field.id}`);
+                    if (savedValue !== null) {
+                        field.value = savedValue;
+                    }
+                }
+            });
+        }
+
+        // Adicionar event listeners para salvar ao digitar
+        reelFields.forEach(field => {
+            if (field) {
+                field.addEventListener('input', saveReelData);
+            }
+        });
+
+        // Carregar dados quando a página é carregada
+        document.addEventListener('DOMContentLoaded', loadReelData);
+        
+        // Botão para limpar formulário e localStorage
+        const clearReelFormBtn = document.getElementById('clearReelFormBtn');
+        if (clearReelFormBtn) {
+            clearReelFormBtn.addEventListener('click', function() {
+                if (confirm("Tem certeza que deseja limpar todos os campos e os dados salvos?")) {
+                    reelFields.forEach(field => {
+                        if (field) {
+                            field.value = ''; // Limpa o campo na tela
+                            localStorage.removeItem(`reel_${field.id}`); // Remove do localStorage
+                        }
+                    });
+                    // Opcional: notificar o usuário
+                    // alert("Formulário e dados salvos foram limpos!");
+                }
+            });
+        }
+
+
+        // --- PDF GENERATION ---
         document.getElementById('downloadReelPdfBtn').addEventListener('click', function() {
             const { jsPDF } = window.jspdf;
             const doc = new jsPDF({ orientation: 'p', unit: 'mm', format: 'a4' });
@@ -414,15 +490,19 @@
             const reelCTA = document.getElementById('reelCTA').value.trim();
 
             const titleText = reelTitulo ? `Roteiro do Reel: ${reelTitulo}` : "Roteiro do Reel";
-            addContentToPdf(doc, currentYRef, titleText, 18, 'bold', [231,76,60], true, 10); // Cor Coral
+            addContentToPdf(doc, currentYRef, titleText, 18, 'bold', [231,76,60], true, 10); 
 
-            addContentToPdf(doc, currentYRef, "1️⃣ Gancho / Começo", 14, 'bold', [44,62,80], true, 3);
+            const ganchoTitlePdf = "1. Gancho / Começo";
+            const desenvolvimentoTitlePdf = "2. Desenvolvimento / Meio";
+            const ctaTitlePdf = "3. CTA / Encerramento";
+
+            addContentToPdf(doc, currentYRef, ganchoTitlePdf, 14, 'bold', [44,62,80], true, 3);
             addContentToPdf(doc, currentYRef, reelGancho, 11, 'normal', [51,51,51], false, 5);
 
-            addContentToPdf(doc, currentYRef, "2️⃣ Desenvolvimento / Meio", 14, 'bold', [44,62,80], true, 3);
+            addContentToPdf(doc, currentYRef, desenvolvimentoTitlePdf, 14, 'bold', [44,62,80], true, 3);
             addContentToPdf(doc, currentYRef, reelDesenvolvimento, 11, 'normal', [51,51,51], false, 5);
             
-            addContentToPdf(doc, currentYRef, "3️⃣ CTA / Encerramento", 14, 'bold', [44,62,80], true, 3);
+            addContentToPdf(doc, currentYRef, ctaTitlePdf, 14, 'bold', [44,62,80], true, 3);
             addContentToPdf(doc, currentYRef, reelCTA, 11, 'normal', [51,51,51], false, 5);
 
             let filename = "roteiro_reel";
